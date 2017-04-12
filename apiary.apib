@@ -12,14 +12,8 @@ Polls is a simple API allowing consumers to view polls and vote in them.
 + Parameters
     + id (number, optional) ... Filter by the given product id.
 
-+ Response 200 (application/json)
++ Response 200 (text/xml)
     + Body
-            
-            {}
-
-+ Response 200 (application/xml)
-    + Body
-    
     
             <?xml version="1.0" encoding="UTF-8"?>
             <product>
@@ -38,7 +32,7 @@ Polls is a simple API allowing consumers to view polls and vote in them.
                 <content><p>Hello world!</p></content>
             </post>
         
-+ Response 404 (application/xml)
++ Response 404 (text/xml)
     + Body
     + Attributes (Error404ResponseType)
 
