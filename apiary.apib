@@ -5,76 +5,43 @@ HOST: http://polls.apiblueprint.org/
 
 Polls is a simple API allowing consumers to view polls and vote in them.
 
-## Questions Collection [/questions]
+## Questions Collection [/products/{id}]
 
-### List All Questions [GET]
+### List All Products [GET]
 
-+ Response 200 (application/json)
++ Parameters
+    + id (number, optional) ... Filter by the given product id.
 
-        [
-            {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 2048
-                    }, {
-                        "choice": "Python",
-                        "votes": 1024
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 512
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 256
-                    }
-                ]
-            }
-        ]
-
-### Create a New Question [POST]
-
-You may create your own question using this action. It takes a JSON
-object containing a question and a collection of answers in the
-form of choices.
-
-+ Request (application/json)
-
-        {
-            "question": "Favourite programming language?",
-            "choices": [
-                "Swift",
-                "Python",
-                "Objective-C",
-                "Ruby"
-            ]
-        }
-
-+ Response 201 (application/json)
-
-    + Headers
-
-            Location: /questions/2
-
++ Response 200 (application/xml)
     + Body
+    
+            <?xml version="1.0" encoding="UTF-8"?>
+            <product>
+                <id>1</id>
+                <name>Fútbol</name>
+                <type>even</type>
+            </product>
 
-            {
-                "question": "Favourite programming language?",
-                "published_at": "2015-08-05T08:40:51.620Z",
-                "choices": [
-                    {
-                        "choice": "Swift",
-                        "votes": 0
-                    }, {
-                        "choice": "Python",
-                        "votes": 0
-                    }, {
-                        "choice": "Objective-C",
-                        "votes": 0
-                    }, {
-                        "choice": "Ruby",
-                        "votes": 0
-                    }
-                ]
-            }
++ Response 400 (application/xml)
+    + Body
+    
+            <?xml version="1.0" encoding="UTF-8"?>
+            <post>
+                <id>1</id>
+                <content><p>Hello world!</p></content>
+            </post>
+        
++ Response 404 (application/xml)
+    + Body
+    + Attributes (Error404ResponseType)
+
+
+# Data Structures
+
+## Error400ResponseType
++ code: 400 (number, required)
++ message: `Bad Request` (string, required)
+
+## Error404ResponseType
++ code: 404 (number, required)
++ message: `Product not found` (string, required)
