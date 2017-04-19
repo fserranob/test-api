@@ -1,54 +1,1588 @@
 FORMAT: 1A
-HOST: http://polls.apiblueprint.org/
+HOST: http://gateway-pre.oneboxtickets.net/onebox-rest2/rest/
 
-# test-api
+# Ticket distribution API
 
-Polls is a simple API allowing consumers to view polls and vote in them.
+![Onebox logo](http://developer.oneboxtickets.com/img/Banner-Onebox-Rest-Api-3.png "Onebox API logo")
 
-## Questions Collection [/products/{id}]
+## API for authenticate on sale channels.
+There are two API that a client must have to implement in order to perform a complete ticket booking flow in Onebox.
 
-### List All Products [GET]
+The first one is the **[Oauth2 Authentiation API](http://docs.oneboxoauth2authentication.apiary.io)**, this API will let you retrieve an authorization token to be used afterwards to call any service from the distribution API.
+
+![Onebox Oauth2 flow](http://developer.oneboxtickets.com/img/OUTH2-API-diagram-flow.png "Onebox OAuth2 flow")
+
+### 1. Authentication
+
+1. OAUTH2 Bearer token
+
+### 2. Basic booking flow
+
+1. Download product catalogue
+2. Availability (Widget or API)
+3. Add seats to shopping cart
+4. Create an order
+5. *Process payment (client side)*
+6. Confirm order
+7. Download ticket
+
+![Onebox logo](http://developer.oneboxtickets.com/img/APIFlow.png "API Flow")
+
+**Notice** that you also will be able to search for events and activities, to manage promotions and to navigate across venues. Must see the distribution API online documentation: [Onebox Distribution API Documentation](http://developer.oneboxtickets.com)
+
+---
+
+
+
+## Product Availability [/events/search{?eventType,startDate,endDate,venueId}]
+
++ Attributes (EventsSearchResponseType)
+
+### Search for product [GET]
+
+Use this service to search for events and activities with any active session/performance from providers that bounds to your on sale distribution channel.
+
++ Request
+
+  + Headers
+
+            Authorization: Bearer [ACCESS_TOKEN]
+            Content-Type: application/x-www-form-urlencoded
+            Accept: application/json
 
 + Parameters
-    + id (number, optional) ... Filter by the given product id.
+    + eventType: `EVENT` (enum[string], optional) ... Choose between whether you wish **events** (ie: theater, music, futball) or **activities** (ie: theme parks)
+        + Members
+            + `EVENT` (string) - Filter results to regular events (ie: theater, music, futball)
+            + `ACTIVITY` (string) - Filter results to activities (ie: theme parks)
+    + startDate: `2015-09-01T12:00:00+01:00` (string, optional) ... Filter by session/performance with its start date greater or equals to the given startDate.
+    + endDate: `2015-10-01T12:00:00+01:00` (string, optional) ... Filter by session/performance with its end date lower or equals to the given endDate.
+    + venueId (string, optional) ... Filter events with active sessions/performances by the given venue id.
 
-+ Response 200 (application/json)
-    + Body
-            
-            {}
++ Response 200 (application/json;charset=UTF-8)
 
-+ Response 200 (application/xml)
+            + Headers
+                traceID: `String: Unique id to identify the transaction within the Onebox API audit system`
+                OB_Error_Code: `Number: This is the Onebox error codes. Get the full list here: [go to Onebox error  responses](http://developer.oneboxtickets.com/httpresponsecodes.html)`
+
     + Body
-    
-    
-            <?xml version="1.0" encoding="UTF-8"?>
-            <product>
-                <id>1</id>
-                <name>Fútbol</name>
-                <type>event</type>
-            </product>
-            
-   
-+ Response 400 (application/xml)
+    + Attributes (EventsSearchType)
+
++ Response 400 (application/json;charset=UTF-8)
     + Body
-    
-            <?xml version="1.0" encoding="UTF-8"?>
-            <post>
-                <id>1</id>
-                <content><p>Hello world!</p></content>
-            </post>
-        
-+ Response 404 (text/xml)
+    + Attributes (Error400ResponseType)
+
++ Response 401 (application/json;charset=UTF-8)
     + Body
-    + Attributes (Error404ResponseType)
+    + Attributes (Error401ResponseType)
+
++ Response 500 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error500ResponseType)
+
+
+## Event information [/event/{idEvent}/info{?startDate,endDate,showNotPublishedInfo}]
+
++ Attributes (EventInfoResponseType)
+
+### Search for event [GET]
+
+Use this service to get event information.
+
++ Request
+
+  + Headers
+
+            Authorization: Bearer [ACCESS_TOKEN]
+            Content-Type: application/json
+            Accept: application/json
+
++ Parameters
+    + idEvent: 1234 (number, required) ... Event identifier
+    + startDate: `2015-09-01T12:00:00+01:00` (string, optional) ... Filter by session/performance with its start date greater or equals to the given startDate.
+    + endDate: `2015-10-01T12:00:00+01:00` (string, optional) ... Filter by session/performance with its end date lower or equals to the given endDate.
+    + showNotPublishedInfo: false (boolean, optional) ... Filter by show or not published info. False by default if not specified.
+
++ Response 200 (application/json;charset=UTF-8)
+
+            + Headers
+                traceID: `String: Unique id to identify the transaction within the Onebox API audit system`
+                OB_Error_Code: `Number: This is the Onebox error codes. Get the full list here: [go to Onebox error  responses](http://developer.oneboxtickets.com/httpresponsecodes.html)`
+
+    + Body
+    + Attributes (EventInfoType)
+
++ Response 400 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error400ResponseType)
+
++ Response 401 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error401ResponseType)
+
++ Response 500 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error500ResponseType)
+
+
+## Session information [/session/{idSession}/info{?showNotPublishedInfo}]
+
++ Attributes (SessionInfoResponseType)
+
+### Search for session [GET]
+
+Use this service to get event information.
+
++ Request
+
+  + Headers
+
+            Authorization: Bearer [ACCESS_TOKEN]
+            Content-Type: application/json
+            Accept: application/json
+
++ Parameters
+    + idSession: 12345 (number, required) ... Session identifier
+    + showNotPublishedInfo (boolean, optional) ... Filter by show or not published info. False by default if not specified.
+
++ Response 200 (application/json;charset=UTF-8)
+
+            + Headers
+                traceID: `String: Unique id to identify the transaction within the Onebox API audit system`
+                OB_Error_Code: `Number: This is the Onebox error codes. Get the full list here: [go to Onebox error  responses](http://developer.oneboxtickets.com/httpresponsecodes.html)`
+
+    + Body
+    + Attributes (SessionInfoType)
+
++ Response 400 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error400ResponseType)
+
++ Response 401 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error401ResponseType)
+
++ Response 500 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error500ResponseType)
+
+## Create shoppingCart [/shoppingCart/create]
+
+### Create a new shoppingCart [POST]
+
++ Attributes (CreateShoppingCartResponseType)
+
++ Request
+
+  + Headers
+
+            Authorization: Bearer [ACCESS_TOKEN]
+            Content-Type: application/json
+            Accept: application/json
++ Response 200 (application/json;charset=UTF-8)
+
+            + Headers
+                traceID: `String: Unique id to identify the transaction within the Onebox API audit system`
+                OB_Error_Code: `Number: This is the Onebox error codes. Get the full list here: [go to Onebox error  responses](http://developer.oneboxtickets.com/httpresponsecodes.html)`
+    + Body
+    + Attributes (CreateShoppingCartType)
+
++ Response 400 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error400ResponseType)
+
++ Response 401 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error401ResponseType)
+
++ Response 500 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error500ResponseType)
+
+## Add individual activity seats [/shoppingCart/addIndividualActivitySeats{?token,idSession,numSeats,idActivityTicketType}]
+
+ + Attributes (AddIndividualActivitySeatsResponseType)
+
+### Add seats to individual activity [POST]
+
+Use this service to add seats to individual acttivity
+
++ Request
+
+  + Headers
+
+            Authorization: Bearer [ACCESS_TOKEN]
+            Content-Type: application/x-www-form-urlencoded
+            Accept: application/json
+
++ Parameters
+    + token: `188a5cf2a844e684375172cb1cf2bbf3` (string, required) ... Shopping cart identifier
+    + idSession: 1234 (number, required) ... Event identifier
+    + numSeats: 2 (number,required) ... number of seats(pax) to add
+    + idActivityTicketType: 1872923 (number,required) ... Activity Ticket Type identifier for this session (for example, adult)
+
++ Response 200 (application/json;charset=UTF-8)
+
+  + Headers
+
+            traceID: `String: Unique id to identify the transaction within the Onebox API audit system`
+            OB_Error_Code: `Number: This is the Onebox error codes. Get the full list here: [go to Onebox error  responses](http://developer.oneboxtickets.com/httpresponsecodes.html)`
+
+    + Body
+    + Attributes (AddIndividualActivitySeatsType)
+
++ Response 400 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error400ResponseType)
+
++ Response 401 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error401ResponseType)
+
++ Response 500 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error500ResponseType)
+
+## Add Client data [/shoppingCart/clientData{?token,email,firstName,lastName,birthday,telephone,identification,identificationType,gender,address,city,postalCode,countryCode,countrySubdivisionCode,allowCommercialMailing,ticketEmail,receiptEmail,additionalInsuranceData,notes}]
+
++ Attributes (ClientDataResponseType)
+
+### Client Data  [POST]
++ Use this service to add Client Data to shopping cart
+
++ Request
+
+  + Headers
+
+            Authorization: Bearer [ACCESS_TOKEN]
+            Content-Type: application/x-www-form-urlencoded
+            Accept: application/json
+
++ Parameters
+    + token: `188a5cf2a844e684375172cb1cf2bbf3` (string, required) ... Shopping cart identifier
+    + email: `a@a.com` (string,required) ...Buyer's emal
+    + firstName: `firstName` (string,optional) ... Buyer's name
+    + lastName: `lastName` (string,optional) ... Buyer's lastname
+    + birthday: `1972-07-22'T'00:00:00` (string,optional) ... Buyer's birthday ISO8601 format (yyyy-MM-dd'T'HH:mm:ss) or (yyyy-MM-dd)
+    + telephone: `999 999 999` (string,optional) ... Buyer's telephone number
+    + identification: `66666666R`  (string,optional) ... Buyer's identification
+    + identificationType: 1  (number,optional) ... Buyer's identification type
+    + gender: `M`  (string,optional) ... Buyer's gender ('Male' or 'M' and 'Female' or 'F')
+    + address: `Av. Alcalde Pere Molas, km.2`  (string,optional) ... Buyer's Buyer's address
+    + city: `Barcelona`  (string,optional) ... Buyer's city
+    + postalCode: `12369`  (string,optional) ... Buyer's postal code
+    + countryCode: `ES`  (string,optional) ... Buyer's country code. ISO 3166-2 (from <a href="rest.masterData.countries.html">/masterData/countries</a>)
+    + countrySubdivisionCode: `CA`  (string,optional) ... Buyer's country subdivision code. ISO 3166 2-alpha (from <a href="rest.masterData.country.html">/masterData/country</a>)
+    + allowCommercialMailing: `true`  (string,optional) ... Buyer's commercial mailing acceptance.
+    + ticketEmail: `a@a.com`  (string,optional) ... Buyer's where tickets will be send in print@home delivery type
+    + receiptEmail: `a@a.com`  (string,optional) ... Buyer's where receipt will be send in print@home delivery type
+    + additionalInsuranceData: `aaaaa`  (string,optional) ... Additional insurance information
+    + notes: `aaaaaa`  (string,optional) ... Client additional info.
+
++ Response 200 (application/json;charset=UTF-8)
+
+  + Headers
+
+            traceID: `String: Unique id to identify the transaction within the Onebox API audit system`
+            OB_Error_Code: `Number: This is the Onebox error codes. Get the full list here: [go to Onebox error  responses](http://developer.oneboxtickets.com/httpresponsecodes.html)`
+
+    + Body
+    + Attributes (ShoppingCartType)
+
++ Response 400 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error400ResponseType)
+
++ Response 401 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error401ResponseType)
+
++ Response 500 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error500ResponseType)
+
+## Delivery [/shoppingCart/delivery{?orderDeliveryCost,token,type}]
+
++ Attributes (DeliveryResponseType)
+
+### Delivery  [POST]
++ Use this service to add sets of delivery method and the costs per item and costs per order
+
++ Request
+
+  + Headers
+
+            Authorization: Bearer [ACCESS_TOKEN]
+            Content-Type: application/x-www-form-urlencoded
+            Accept: application/json
+
++ Parameters
+    + token: `188a5cf2a844e684375172cb1cf2bbf3` (string, required) ... Shopping cart identifier
+    + orderDeliveryCost: 0 (number, required) ... Delivery cost per order  (Not required for boxoffice terminals)
+    + type: 1 (enum[number], required) ...  Delivery type identifier
+        + Members
+            + 1 (number) - Print at home
+            + 2 (number) - Will Call
+            + 3 (number) - Print express
+            + 4 (number) - Mobile
+            + 5 (number) - External delivery
+
+
++ Response 200 (application/json;charset=UTF-8)
+
+  + Headers
+
+                traceID: `String: Unique id to identify the transaction within the Onebox API audit system`
+                OB_Error_Code: `Number: This is the Onebox error codes. Get the full list here: [go to Onebox error  responses](http://developer.oneboxtickets.com/httpresponsecodes.html)`
+
+    + Body
+    + Attributes (ShoppingCartType)
+
++ Response 400 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error400ResponseType)
+
++ Response 401 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error401ResponseType)
+
++ Response 500 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error500ResponseType)
+
+## Create Order [/order/createOrder{?token,orderType,items,itemsChannelCharges,notes,skipClientValidations}]
+
++ Attributes (CreateOrderResponseType)
+
+### Create a new order [POST]
+
+Use this service to create a new order.
+
++ Request
+
+  + Headers
+
+            Authorization: Bearer [ACCESS_TOKEN]
+            Content-Type: application/json
+            Accept: application/json
+
++ Parameters
+    + token: `188a5cf2a844e684375172cb1cf2bbf3` (string, required) ... Shopping cart identifier
+    + orderType: `PURCHASE` (enum[string], required) ... Order type. Fixed value to "PURCHASE", only available choose.
+        + Members
+            + `PURCHASE` (string) - Purchase type
+    + items: 123 (array[number], optional) ... Items identifiers. If not present, all items will be added.
+    + itemsChannelCharges (ItemsChannelChargesType, optional) ... Items channel charges, for external charges.
+    + notes: `A note` (string, optional) ... Client additional info.
+    + skipClientValidations (boolean, optional) ... Indicate if skip client validations. False by default if not specified.
+
++ Response 200 (application/json;charset=UTF-8)
+
+            + Headers
+                traceID: `String: Unique id to identify the transaction within the Onebox API audit system`
+                OB_Error_Code: `Number: This is the Onebox error codes. Get the full list here: [go to Onebox error  responses](http://developer.oneboxtickets.com/httpresponsecodes.html)`
+
+    + Body
+    + Attributes (CreateOrderType)
+
++ Response 400 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error400ResponseType)
+
++ Response 401 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error401ResponseType)
+
++ Response 500 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error500ResponseType)
+
+
+## Commit Order [/order/commitOrder{?orderCode,payments,bookingExpireDate,suspectFraud,notes}]
+
++ Attributes (CommitOrderResponseType)
+
+### Commit a order [POST]
+
+Use this service to commit a order.
+
++ Request
+
+  + Headers
+
+            Authorization: Bearer [ACCESS_TOKEN]
+            Content-Type: application/json
+            Accept: application/json
+
++ Parameters
+    + orderCode: `188a5cf2a844e684375172cb1cf2bbf3` (string, required) ... Order code.
+    + payments: `<payments xmlns="http://www.oneboxtm.es/ns/input-data/purchase/order"><payment xmlns="http://www.oneboxtm.es/ns/input-data/purchase/order" type="CASH" value="100.0"/></payments>` (PaymentsType, required) ... Payments. It is a XML.
+    + bookingExpireDate: `2015-10-01T12:00:00+01:00` (string, optional) ... ISO8601 format (yyyy-MM-dd'T'HH:mm:ss) or (yyyy-MM-dd). Only for booking orders.
+    + suspectFraud: false (boolean, optional) ... Indicates that payment might be a fraud. This can change delivery method.
+    + notes: `A note` (string, optional) ... Client additional info.
+
++ Response 200 (application/json;charset=UTF-8)
+
+            + Headers
+                traceID: `String: Unique id to identify the transaction within the Onebox API audit system`
+                OB_Error_Code: `Number: This is the Onebox error codes. Get the full list here: [go to Onebox error  responses](http://developer.oneboxtickets.com/httpresponsecodes.html)`
+
+    + Body
+    + Attributes (CommitOrderType)
+
++ Response 400 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error400ResponseType)
+
++ Response 401 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error401ResponseType)
+
++ Response 500 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error500ResponseType)
+
+## Tickets generation [/order/ticketsPDF{?orderCode,items,includeReceipt,merged}]
+
++ Attributes (OrderTicketsPDFResponseType)
+
+### Obtains the tickets [GET]
+
+Use this service to obtains the tickets of the order items if the order is in committed status. The tickets generation is processed asynchronously, while the tickets are not available the http error code (from 1088) will be returned, then you have to retry.
+
++ Request
+
+  + Headers
+
+            Authorization: Bearer [ACCESS_TOKEN]
+            Content-Type: application/json
+            Accept: application/json
+
++ Parameters
+    + orderCode: : `188a5cf2a844e684375172cb1cf2bbf3` (string, required) ... ... Order code.
+    + items: 00000001 (number, optional) ... List of product IDs. All product IDs are selected if not specified.
+    + includeReceipt: true (boolean, optional) ... Indicate if include receipt.
+    + merged: true (boolean, optional) ... Indicate if merge.
+
++ Response 200 (application/json;charset=UTF-8)
+
+            + Headers
+                traceID: `String: Unique id to identify the transaction within the Onebox API audit system`
+                OB_Error_Code: `Number: This is the Onebox error codes. Get the full list here: [go to Onebox error  responses](http://developer.oneboxtickets.com/httpresponsecodes.html)`
+
+    + Body
+    + Attributes (OrderTicketsPDFType)
+
++ Response 400 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error400ResponseType)
+
++ Response 401 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error401ResponseType)
+
++ Response 500 (application/json;charset=UTF-8)
+    + Body
+    + Attributes (Error500ResponseType)
 
 
 # Data Structures
 
-## Error400ResponseType
-+ code: 400 (number, required)
-+ message: `Bad Request` (string, required)
+## Error500ResponseType
++ statusCode: 1010 (number, required) - This is the Onebox error codes. Get the full list here: [go to Onebox error responses](http://developer.oneboxtickets.com/httpresponsecodes.html)
++ responseTime: `08-03-2017 13:46:03.657` (string, required)
 
-## Error404ResponseType
-+ code: 404 (number, required)
-+ message: `Product not found` (string, required)
+## Error400ResponseType
++ error: Bad request (string, required) - Short http error code description
++ error_description: There was a syntax error, check your params request and try it again. (string, required) - Detailed description of the error returned.
+
+## Error401ResponseType
++ error: Unauthorized (string, required) - Short http error code description.
++ error_description: Full authentication is required to access this resource (string, required) - Detailed description of the error returned.
+
+## ImageType
++ @type: `LOGO_WEB` (string, required) - `Image categorization, ie: LOGO_WEB, IMG_BANNER_WEB, IMG_BODY_WEB.`
++ @order: 1 (number, required) - Indicates just the order/priority in case of same type. This number is unique.
++ $: `https://s3.amazonaws.com/onebox-repository/pro/1/475/evento/7877/366778_807931_1483100412907.jpg` (string, required) - Absolute path to the image file.
+
+## VideoType
++ @type: `VIDEO` (string, required) - `Video categorization.`
++ $: `https://s3.amazonaws.com/onebox-repository/pro/1/475/evento/7877/366778_807931_1483100412907.jpg` (string, required) - Absolute path to the video file.
+
+## FileType
++ @type: `FILE` (string, required) - `File categorization.`
++ $: `https://s3.amazonaws.com/onebox-repository/pro/1/475/evento/7877/366778_807931_1483100412907.jpg` (string, required) - Absolute path to the file.
+
+## BannerType
++ @type: `CHANNEL_PURCHASE_HEADER_BANNER`(string, required) - `Banner categorization, ie: CHANNEL_PURCHASE_HEADER_BANNER, CHANNEL_PURCHASE_BANNER, PROMOTER_PURCHASE_BANNER`
++ imageUrl: `https://s3.amazonaws.com/onebox-repository/pro/1/1/itemIdioma/1741/1_image_1340695930723.jpg`(string, required) - Absolute path to the banner image file.
++ linkUrl: `http://www.website.com/channel_id`(string, optional) - Direct link to the promotional site just in case.
+
+## CommunicationElementsType
++ @language: `en_US` (string, required) - Indicates the language of the communitacion event details.
++ images (array[ImageType], fixed-type) - List of related images as banners, logo's, backgrounds...
++ videos (array[VideoType], fixed-type) - List of related images as banners, logo's, backgrounds...
++ files (array[FileType], fixed-type) - List of related images as banners, logo's, backgrounds...
++ banners (array[BannerType], fixed-type) - List of related banners to put into a website, pdf, ticket...
+
+## TaxonomyType
++ @id: 68 (number, required) - Unique identifier of this product segmentation.
++ code: APRTEM (string, required) - Unique identifier fo this product segmentation to be used in th API.
++ description: `Theme Parks` (string, optional) - Short description to better understand the taxonomy segmentation.
+
+## ChildTaxonomyType
++ @id: 68 (number, required) - Unique identifier of this product segmentation.
++ code: APRTEM (string, required) - Unique identifier fo this product segmentation to be used in th API.
++ description: `Theme Parks` (string, optional) - Short description to better understand the taxonomy segmentation.
++ `superior-taxonomy` (TaxonomyType)
+
+## CustomTaxonomyType
++ @id: 68 (number, required) - Unique identifier of this product segmentation.
++ code: APRTEM (string, required) - Unique identifier fo this product segmentation to be used in th API.
++ description: `Theme Parks` (string, optional) - Short description to better understand the taxonomy segmentation.
+
+## LanguageType
++ language: `en_US` (array[enum], fixed-type) - `List of the available languages for the event descriptions.`
+    + (enum[string])
+        + Members
+            + `ca_ES` (string) - Català
+            + `es_ES` (string) - Español
+            + `en_US` (string) - English
+            + `fr_FR` (string) - French
+            + `it_IT` (string) - Italiano
+            + `de_DE` (string) - Deutsch
+
+## DatetimeType
++ @type: `EVENT_BEGIN` (enum[string]) - Define the date meaning possibilites.
+    + Members
+        + `EVENT_BEGIN` (string)
+        + `EVENT_END` (string)
+        + `SESSION_BEGIN` (string)
+        + `SESSION_END` (string)
+        + `SESSION_SALES_BEGIN` (string)
+        + `SESSION_SALES_END` (string)
+        + `PRODUCT_SALES` (string)
+        + `PRODUCT_SALES_END` (string)
+        + `SESSION_PUBLISHED` (string)
+        + `PROMOTION_BEGIN` (string)
+        + `PROMOTION_END` (string)
+        + `SEASON_TICKET_HOLDER_BEGIN` (string)
+        + `SEASON_TICKET_HOLDER_END` (string)
++ @pendingConfirmation: false (boolean, optional) - Says whether the date is finally commited or not.
++ @timeZoneId: `Europe/Berlin` (string, optional) - Define the time zone worldwide from UTC.
++ $: `2018-01-07T19:00:00.000+01:00` (string, optional) - XmlGregorianCalendar representation of the given date.
+
+## DatesType
++ datetime (array[DatetimeType], fixed-type)
+
+## CountrySubdivisionType
++ @code: `ES-B` (string, required) - Item unique identifier.
++ $: `Barcelona` (string, required) - Item value string.
+
+## CountryType
++ @code: `ES` (string, required) - Item unique identifier.
++ $: `Spain` (string, required) - Item value string.
+
+## LocationType
++ address: `Av. Alcalde Pere Molas, km.2` (string, required) - Venue address where the event will be performed.
++ city: `Barcelona` (string, required) - City where the event will be performed.
++ postalCode: `SD-4324` (string, required) - Postal code or zip code where the event will be performed.
++ countrySubdivision (CountrySubdivisionType, required) - `Country subdivision, this shall be the province, state or county. Ie: ES-T - Tarragona.`
++ country (CountryType, required) - `Ie: ES - Spain.`
++ coordinates (string, optional)
+
+## EntityType
++ @id: 123 (number, required)
++ name: `Theme Park` (string, required) - Promotor/Organizer company name.
++ nif: `A54343234` (string, required) - Tax/Vat unique identifier number.
++ email: `info@theme.park` (string, required)
++ phoneNumber: `0034 555 55 55` (string, required)
++ timeZone: `Europe/Madrid` (string, required)
++ location (LocationType)
+
+## PromoterType
++ @id: 475 (number, required) - Onebox internal unique identifier.
++ corporateName: `Theme Park Entertainment SA.` (string, required)
++ fiscalCode: `A53776307` (string, required) - Tax/Vat unique identifier number.
++ email: `info@theme.park` (string, required)
++ phoneNumber: `0034 555 55 55` (string, required)
++ location (LocationType)
+
+## TourType
++ @id: 475 (number, required) - Onebox internal unique identifier.
++ name: `Theme Park` (string, required) - Tour name.
++ promotorReference: `Theme Park Entertainment SA.` (string, required) - Promotor reference.
+
+## DomainValueInfoType
++ idValue: 10 (number, required) - Unique identifier.
++ value: `oneboxtm` (string, required)
++ referenceCode: `OB` (string, required)
+
+## AttributeInfoType
++ id (number, required) - Unique identifier.
++ name (string, required)
++ selection: `SINGLE` (enum[string], required)
+    + Members
+        + `SINGLE` (string)
+        + `MULTIPLE` (string)
++ `domain-value-info` (array[DomainValueInfoType], fixed-type, required)
++ domain: `EVENT` (enum[string], required)
+    + Members
+        + `EVENT` (string)
+        + `SESSION` (string)
+        + `GROUP` (string)
+        + `PROFILE` (string)
++ valueType: `DOMAIN_VALUE` (enum[string], required)
+    + Members
+        + `USER_INPUT_INTEGER` (string)
+        + `USER_INPUT_STRING` (string)
+        + `DOMAIN_VALUE` (string)
++ referenceCode: `Attr` (string, required)
+
+## DomainValueType
++ value: `` (string, required)
++ idValue: 30 (number)
+
+## AttributeValueType
++ `user-input-value` (object) - Unique identifier.
++ `domain-value` (DomainValueType) - Unique identifier.
+
+## AttributeValuesType
++ `attribute-info` (AttributeInfoType, required)
++ `attribute-value` (array[AttributeValueType], fixed-type, required)
++ idAttribute: 50 (number, optional)
++ description: `DESCRIPTION` (string, optional)
+
+## PassbookPreferencesType
++ `communication-elements` (CommunicationElementsType)
++ textColor (string, optional)
++ labelColor (string, optional)
++ backgroundColor(string, optional)
+
+## ClientEventDiscountType
++ discountType: `AMOUNT` (enum[string], required)
+    + Members
+        + `AMOUNT` (string)
+        + `PERCENT` (string)
++ discount (number, optional)
+
+## EventBaseType
++ @id: 23454 (number, required) - Unique identifier for each event/activity product.
++ internalName: `7 days 1 park` (string, required) - Product internal description name.
++ externalReferenceCode: `EXT-123` (string, required) - In case of product from 3rd party suppliers, those came with its own reference.
++ title: `Theme Park` (string, required) - Event main title
++ subtitle: `¡Discover the 6 worlds adrenaline!` (string, required) - Event secondary title
++ shortDescription: `<P ALIGN=\"LEFT\">Six amazing worlds in just one Park, perfect for having fun in family and frends as well.</P>`(string, required) - Event short description
++ longDescription: `<P ALIGN=\"LEFT\">Explore a whole world of fun and know our amazing theme parks. An ideal destination for a family getaway, located in one of the best tourist areas of Spain and just an hour from Barcelona! </ P> <BR/> <P ALIGN = \ "LEFT \"> The best entertainment, relaxation, gastronomy and shopping you can imagine. > A DESTINY AND SIX WORLDS TO DISCOVER </ P> <P ALIGN = \ "LEFT \"> Here begins a journey that takes you much further than you can imagine. At the Park we look forward to six fascinating worlds completely different, with a careful decoration to the last detail, so that you enjoy to the maximum. Emotions for all tastes. Families, friends, big and small: in our theme park, all the fun.</P>` (string, required) - Event detailed description
++ additionalEventData (string, required)
++ duration (string, required)
++ `communication-elements` (CommunicationElementsType)
++ taxonomy (ChildTaxonomyType)
++ `custom-taxonomy` (CustomTaxonomyType)
++ `promoter-custom-taxonomy` (CustomTaxonomyType)
++ languages (LanguageType)
++ dates (DatesType)
++ entidad (EntityType)
++ promotor (PromoterType)
++ tour (TourType)
++ severalVenues: false (boolean, required) - Is the event performed in different venues?
++ severalLocations: false (boolean, required) - Is the event perfomed in different locations?
++ supraEvent: false (boolean, required) - Is the event a sibling from another parent event?
++ giftTicket: false (boolean, required) - Has this event free entrance tickets allowed?
++ nominal: false (boolean, required) - Has the ticket to indicate the owner name / surname / id details?
++ eventType: `EVENT` (enum[string], required)
+    + Members
+        + `EVENT` (string) - General event like theater, music, football.
+        + `ACTIVITY` (string) - Museums, theme parks, seatless performances in general.
++ `attribute-values` (array[AttributeValuesType], fixed-type)
++ passbookPreferences (PassbookPreferencesType, required, nullable)
++ clientEventDiscount (ClientEventDiscountType)
+
+## VenueType
++ @id: 432432 (number, required) - Onebox internal venue unique identifier.
++ @name: `World Park` (string, required) - Public venue name.
++ @timeZone: `Europe/Berlin` (string, optional) - Define the time zone worldwide from UTC.
++ `communication-elements` (CommunicationElementsType)
++ location (LocationType)
+
+## SpaceType
++ id: 150 (number) - Unique space identifier.
++ name: `SPACE` (string) - Space name.
+
+## SessionBaseFixedType
++ @id: 5553432 (number, required) - `Onebox session/performance unique identifier.`
++ internalName: `7 days 1 park` (string, required) - Product internal description name.
++ name: `7 days 1 park` (string, required) - Public product name depending on the language requestd.
++ description: `<P ALIGN=\"LEFT\">Six amazing worlds in just one Park, perfect for having fun in family and frends as well.</P>`(string, required) - Session description
++ dates (DatesType)
++ venue (VenueType, required)
++ space (SpaceType, required)
++ `event-basic-info` (EventBaseType, required)
++ forSale: true (boolean, optional) - Indicates the event is whether on sale or not.
++ blockingReasons (string, required) ****
++ hasProducts: false (boolean, optional) - For Onebox box office purposes only.
++ admission: `ALL_AGES_ADMITTED` (enum[string], required) - Filter the age range to be admitted as an attendant.
+    + Members
+        + `ALL_AGES_ADMITTED` (string)
+        + `NOT_ADMITTED_UNDER_4` (string)
+        + `NOT_ADMITTED_UNDER_7` (string)
+        + `NOT_ADMITTED_UNDER_8` (string)
+        + `NOT_ADMITTED_UNDER_12` (string)
+        + `NOT_ADMITTED_UNDER_13` (string)
+        + `NOT_ADMITTED_UNDER_14` (string)
+        + `NOT_ADMITTED_UNDER_16` (string)
+        + `NOT_ADMITTED_UNDER_18` (string)
+        + `NOT_ADMITTED_UNDER_21` (string)
++ supportedEventType: `EVENT` (enum[string], required)
+    + Members
+        + `EVENT` (string) - General event like theater, music, football.
+        + `ACTIVITY` (string) - Museums, theme parks, seatless performances in general.
++ supportedVisitorType: `INDIVIDUAL` (enum[string], required)
+    + Members
+        + `INDIVIDUAL` (string)
+        + `GROUP` (string)
+        + `MIXED` (string)
++ `attribute-values` (array[AttributeValuesType], fixed-type)
++ visitorGroupConfig (string) ******
++ hideSessionDates: false (boolean, required) - For Onebox box office purposes only.
++ showDate: false (boolean, required) - For Onebox box office purposes only.
++ showDatetime: false (boolean, required) - For Onebox box office purposes only.
++ @rates: `7 days 1 park UK/PAP17` (string, required) - Rate description identifier.
+
+## SessionBaseNoLoopType
++ Include SessionBaseFixedType
++ `season-session-info` (object, required) - Avoided loop. Object just like your ancestor 'season-session-info'
+
+## SeasonSessionInfoType
++ beginDate: `2015-09-01T12:00:00+01:00` (string, optional) ... Filter by season session with its begin date greater or equals to the given startDate.
++ endDate: `2015-10-01T12:00:00+01:00` (string, optional) ... Filter by season session with its end date lower or equals to the given endDate.
++ idsSeasonSessions (array[number], fixed-type)
++ seasonSessions (SessionBaseNoLoopType, required)
++ @isSeasonSession (number, required) - Unique season session identifier.
+
+## SessionBaseType
++ Include SessionBaseFixedType
++ `season-session-info` (SeasonSessionInfoType, required)
+
+## ChargeType
++ @type: `CHANNEL_CHARGE` (enum[string])
+    + Members
+        + `CHANNEL_CHARGE` (string)
+        + `PROMOTER_CHARGE` (string)
+        + `PROMOTER_CHANNEL_CHARGE` (string)
++ value 1.5 (number, required) - Value of the charge.
+
+## ChargesType
++ charge (array[ChargeType], fixed-type, required)
+
+## BlockingReasonAvailabilityType
++ @id: 10 (number, required) - Unique blocking reason availability identifier.
++ value: 10 (number, optional)
+
+## BlockingReasonsAvailabilityType
++ blockingReasonAvailability (array[BlockingReasonAvailabilityType], fixed-type, required)
+
+## BlockedAvailabilityType
++ blockingReasonsAvailability (BlockingReasonsAvailabilityType, required)
+
+## AvailabilityInfoType
++ total: 2500 (number, optional) - Total venue capacity.
++ available: 2000 (number, optional) - Available seats to be reserved.
++ blockedAvailability (BlockedAvailabilityType, required)
+
+## PromotionComElementsType
++ name: `NAME` (string)
++ description: `DESCRIPTION` (string)
+
+## PriceZonesIdsType
++ priceZonesId: 10, 12, 15 (array[number], fixed-type)
+
+## GroupType
++ i@d: 30 (number, required) - Unique identifier.
++ name: `NAME` (string, optional)
++ validationType: `CHANNEL` (enum[string], required)
+    + Members
+        + `NONE` (string)
+        + `VENUE` (string)
+        + `INTERNAL` (string)
+        + `CHANNEL` (string)
++ validationMethod: `PROMOTIONAL_CODE` (enum[string], required)
+    + Members
+        + `PROMOTIONAL_CODE` (string)
+        + `USER` (string)
+        + `USER_PASSWORD` (string)
+        + `CREDIT_CARD` (string)
+        + `GIFT_TICKET` (string)
+
+## AutomaticPromotionType
++ @id: 30 (number, required) - Unique identifier.
++ promotionComElements (PromotionComElementsType)
++ type: `PERCENTAGE` (enum[string], required)
+    + Members
+        + `PERCENTAGE` (string)
+        + `FIXED` (string)
+        + `UNDEFINED` (string)
++ value: 10.0 (number, required)
++ priceZonesIds (PriceZonesIdsType)
++ group (GroupType)
++ limitedUses: false (boolean, optional) - Default false
+
+## PriceType
++ originalBasePrice: `100.00` (number, required) - PVP public price.
++ originalBasePriceCharges (ChargesType, required)
++ `automatic-promotion` (AutomaticPromotionType)
++ promotedPrice: 100.0 (number, optional) - PVP promoted price just in case there is any promotion applied, otherwise this price will be always the same as originalBasePrice.
++ promotedPriceCharges (ChargesType)
+º
+## SectorAvailabilityType
++ @id: 100 (number, required) - Unique identifier.
++ `availability-info` (AvailabilityInfoType, required)
+
+## ActivityTicketTypeAvailabilityType
++ @id: 555 (number, required) - Unique identifier.
++ name: `NAME` (string, required) - Description name.
++ code: ZP1 (string, optional) - Product availability code.
++ individualPrice (PriceType, required)
++ visitorGroupPrice (PriceType, required)
++ visitorGroupPricingType : `PER_ASSISTANT` (enum[string], required)
+    + Members
+        + `PER_GROUP` (string)
+        + `PER_ASSISTANT` (string)
++ color: `#FFFFFF` (string, optional) - For Onebox internal use only.
++ `availability-info` (AvailabilityInfoType, nullable)
++ `sector-availability` (array[SectorAvailabilityType], fixed-type, required)
+
+## ActivityTicketTypesAvailabilityType
++ `activity-ticket-type-availability` (array[ActivityTicketTypeAvailabilityType], fixed-type, required)
+
+## PriceZoneAvailabilityType
++ Include PriceType
++ @id: 555 (number, required) - Unique identifier.
++ name: `NAME` (string, required) - Description name.
++ code: ZP1 (string, optional) - Price zone availability code.
++ color: `#FFFFFF` (string, optional) - For Onebox internal use only.
++ `availability-info` (AvailabilityInfoType)
++ `sector-availability` (array[SectorAvailabilityType], fixed-type, required)
+
+## PriceZonesAvailabilityType
++ priceZoneAvailability (array[PriceZoneAvailabilityType], fixed-type, required)
+
+## SessionMinPriceType
++ price: 0 (number, required)
++ charges (ChargesType)
+
+## SessionMaxPriceType
++ price: 10 (number, required)
++ charges (ChargesType)
+
+## VisitorGroupAvailabilityType
++ totalVisitorGroups: 0 (number, optional) - For Onebox internal use only.
++ availableVisitorGroups: 0 (number, optional) - For Onebox internal use only.
+
+## SectorType
++ @id: 222 (number, required) - Unique identifier.
++ sectorName: `SECTOR` (string, required) - Sector name.
+
+## SessionSearchInfoType
++ Include SessionBaseType
++ `availability-info` (AvailabilityInfoType)
++ sessionMinPrice (SessionMinPriceType)
++ sessionMaxPrice (SessionMaxPriceType)
++ `price-zones-availability` (PriceZonesAvailabilityType)
++ `activity-ticket-types-availability` (ActivityTicketTypesAvailabilityType)
++ sector (array[SectorType], fixed-type, required)
++ visitorGroupAvailability (VisitorGroupAvailabilityType, nullable)
+
+## SessionsSearchInfoType
++ `session-search-info`(array[SessionSearchInfoType], fixed-type)
+
+## EventMinPriceType
++ price: 0 (number, required)
++ charges (ChargesType)
+
+## EventMaxPriceType
++ price: 10 (number, required)
++ charges (ChargesType)
+
+## EventSearchInfoType
++ Include EventBaseType
++ `sessions-search-info`(SessionsSearchInfoType)
++ eventMinPrice (EventMinPriceType)
++ eventMaxPrice (EventMaxPriceType)
+
+## EventsSearchType
++ `event-search-info` (array[EventSearchInfoType], fixed-type) - List of events/activities products.
+
+## EventsSearchResponseType
++ `events-search` (EventsSearchType)
+
+## RestrictionsType
++ packItems (number)
++ maxItems (number)
++ minItems (number)
+
+## PromotionType
++ @id: 30 (number, required) - Unique promotion identifier.
++ promotionComElements (PromotionComElementsType)
++ type: `PERCENTAGE` (enum[string], required)
+    + Members
+        + `PERCENTAGE` (string)
+        + `FIXED` (string)
+        + `UNDEFINED` (string)
++ value: 10.0 (number, required)
++ priceZonesIds (PriceZonesIdsType)
++ group (GroupType)
++ restrictions (RestrictionsType)
++ mandatory: false (boolean, optional) - Default false
++ `self-managed`: false (boolean, optional) - Default false
++ limitedUses: false (boolean, optional) - Default false
++ dates (DatesType)
+
+## PromotionsType
++ promotion (array[PromotionType], fixed-type, required)
+
+## DiscountType
++ @id: 30 (number, required) - Unique promotion identifier.
++ promotionComElements (PromotionComElementsType)
++ type: `PERCENTAGE` (enum[string], required)
+    + Members
+        + `PERCENTAGE` (string)
+        + `FIXED` (string)
+        + `UNDEFINED` (string)
++ value: 10.0 (number, required)
++ priceZonesIds (PriceZonesIdsType)
++ group (GroupType)
++ restrictions (RestrictionsType)
++ mandatory: false (boolean, optional) - Default false
++ `self-managed`: false (boolean, optional) - Default false
++ limitedUses: false (boolean, optional) - Default false
++ dates (DatesType)
+
+## DiscountsType
++ promotion (array[DiscountType], fixed-type, required)
+
+## PromotionsDiscountsType
++ promotions (PromotionsType)
++ discounts (DiscountsType)
+
+## SessionPropertiesType
++ bestSeatsOperationSupported: true (boolean, optional) - Default true
++ purchaseTicketsLimit: 1 (number, optional) - Ticket purchase limit.
++ antibotDesired: false (boolean, optional)
++ showTime: true (boolean, optional) - Default true
++ capacityIdAvet (string, optional)
++ sessionIdAvet (string, optional)
+
+## SessionInfoType
++ Include SessionBaseType
++ isGraphicVenue: false (boolean, optional) - Is the session a graphic venue?
++ nonGraphicImage (ImageType, required)
++ sessionMinPrice (SessionMinPriceType)
++ sessionMaxPrice (SessionMaxPriceType)
++ `price-zones-availability` (PriceZonesAvailabilityType)
++ `activity-ticket-types-availability` (ActivityTicketTypesAvailabilityType)
++ `availability-info` (AvailabilityInfoType, nullable)
++ `communication-elements` (CommunicationElementsType, nullable)
++ `promotions-discounts` (PromotionsDiscountsType)
++ sector (array[SectorType], fixed-type, required)
++ `session-properties` (SessionPropertiesType, required)
++ visitorGroupAvailability (VisitorGroupAvailabilityType, required, nullable)
++ ticketingPartit: `TICKET` (string, required)
+
+## SessionsInfoType
++ `session-info` (array[SessionInfoType], fixed-type, required)
+
+## EventInfoType
++ Include EventBaseType
++ `sessions-info` (SessionsInfoType)
++ eventMinPrice (EventMinPriceType)
++ eventMaxPrice (EventMaxPriceType)
+
+## EventInfoResponseType
++ `event-info` (EventInfoType)
+
+## SessionInfoResponseType
++ `session-info` (SessionInfoType)
+
+##TicketDataShoppingCartType
++notNumberedAreaId (number)
++notNumberedAreaName (string)
++ numSeat (string)
++ rowName (string)
++ sectorId (number)
++ viewId (number)
++ priceZoneId (number)
++ priceZoneName (string)
++ sectorName (string)
++ accessibility: `NORMAL` (enum[string])
+ + Members
+      + `NORMAL` (string)
+      + `DISABILITY` (string)
++ visibility: `NORMAL` (enum[string])
+  + Members
+      + `NORMAL` (string)
+      + `REDUCED` (string)
+      + `NULL` (string)
++ rowblock (string)
++ rowOrder (string)
++ rowId (number)
++ customer (CustomerType)
++ idTicketActivityType (number)
++ idVisitorGroup (number)
++ @seatId (number)
++ @sessionId (number)
++ @eventId (number)
++ @entityId (number)
++ @seatType: `NUMBERED` (enum[string], required)
+   + Members
+      + `NUMBERED` (string)
+      + `NOT_NUMBERED` (string)
++ @ticketType: `GENERAL` (enum[string], required)
+    + Members
+      + `GENERAL` (string)
+      + `INVITATION` (string)
+
+## ShoppingCartItem
++ `ticket-data` (TicketDataShoppingCartType)
++ `product-data` (ProductDataType)
++ `automatic-protmotion` (AutomaticPromotionType)
++ promotion (PromotionType)
++ promotionActivator (string)
++ productId (number)
++ discount (DiscountType)
++ discountActivator' (string)
++ price-breakdown (PriceBreakdownType)
++ operationsAllowed (OperationsOrderAllowedType)
++ attendant (AttendantType)
++ itemWarning: `SESSION_NON_CONSECUTIVE_SEAT` (array[enum])
+    + (enum[string])
+        + Members
+            + `SESSION_NON_CONSECUTIVE_SEAT` (string)
+            + `SESSION_DIFERENT_PRICE_ZONE` (string)
+            + `NON_CONFIRMED_DATE` (string)
+            + `SESSION_NON_CONSECUTIVE_ZNN` (string)
+            + `SESSION_NON_CONSECUTIVE_SEAT_ZNN` (string)
++ modifyingBookingOrderCode (string)
++ clientConiditions (ClientConditionsType)
++ @id (number,required)
++ @type: `TICKET` (enum)
+    ++ (enum[string])
+        Members
+          + `TICKET` (string)
+          + `PRODUCT` (string)
+
+## shoppingCartItemType
++ `shopping-cart-item` (ShoppingCartItem)
+
+## ShoppingCartType
++ client (CustomerType, required)
++ shoppingCartItem (array[shoppingCartItemType],required)
++ deliveryMethod (number)
++ deliveryCosts (number)
++ insurance (InsuranceType)
++ visitorGroup (array[VisitorGroupType],required)
++ totalPriceBreakdown (PriceBreakdownType,required)
++ platformClient (PlatformClientType,required)
++ @token (string, required)
++ @currency (string, required)
++ @timeleft (number, required)
+
+## CreateShoppingCartType
++ Include ShoppingCartType
+
+## CreateShoppingCartResponseType
++ `create-shoopingcart` (CreateShoppingCartType)
+
+## AddIndividualActivitySeatsType
++ Include ShoppingCartType
+
+## AddIndividualActivitySeatsResponseType
++ `add-individual-activity-seats` (AddIndividualActivitySeatsType)
+
+## ClientDataResponseType
++ `client-data-shopping-cart` (ShoppingCartType)
+
+## DeliveryResponseType
++ `delivery-shopping-cart` (ShoppingCartType)
+
+## ItemChannelChargesType
++ itemId: 123 (number, required)
++ itemChannelCharges: 10.00 (number, required)
+
+## ItemsChannelChargesType
++ itemChannelCharges (array[ItemChannelChargesType], fixed-type, required)
+
+## IdentificationType
++ value (string, required)
++ @type (string, required)
+
+## ProfileFieldType
++ @`field-id`: 123 (number, required) - Unique profile field identifier.
++ idValue (array[number], fixed-type, optional)
++ `user-input-value` (array[object], fixed-type, optional)
+
+## ProfileDataType
++ @`profile-id`: 123 (number, required) - Unique profile data identifier.
++ `profile-field` (array[ProfileFieldType], fixed-type, required)
+
+## CustomerTypeLanguageType
++ value (string, required)
++ @code (string, required)
+
+## ExternalPropertiesType
++ externalId (string, optional)
+
+## GroupValidationType
++ @idGroup: 123 (number, required) - Unique group validation identifier.
++ user (string, required)
++ promotionalCode (string, required)
++ externalProperties (ExternalPropertiesType)
+
+## CustomerType
++ @id: 123 (number, required) - Unique customer identifier.
++ name: `First name` (string, required)
++ lastname: `Last name` (string, required)
++ $: `1970-01-01` (string, required)
++ email: `email@domain.com` (string, optional)
++ receiptMail: `email@domain.com` (string, optional)
++ ticketMail: `email@domain.com` (string, optional)
++ phone: `0034 555 55 55` (string, optional)
++ identification (IdentificationType)
++ gender: `NOT_DEFINED` (enum[string], required)
+    + Members
+        + `NOT_DEFINED` (string)
+        + `MALE` (string)
+        + `FEMALE` (string)
++ location (LocationType, required)
++ idCard (string, optional)
++ docType (number, optional)
++ `profile-data` (ProfileDataType)
++ language (CustomerTypeLanguageType)
++ groupValidation (array[GroupValidationType], fixed-type)
++ allowCommercialMailing (boolean, optional)
+
+## OperationsOrderAllowedType
++ printInvoice: false (boolean, required)
+
+## OrderAutomaticPromotionType
++ @id: 10 (number, required) - Unique identifier.
++ promotionComElements (PromotionComElementsType)
+
+## OrderPromotionType
++ @id: 10 (number, required) - Unique identifier.
++ activator (string)
++ promotionComElements (PromotionComElementsType)
+
+## OrderDiscountType
++ @id: 10 (number, required) - Unique identifier.
++ activator (string)
++ promotionComElements (PromotionComElementsType)
+
+## ExternalTicketDataType
++ access (string)
++ gate (string)
++ entrance (string)
++ zone (string)
+
+## TicketDataType
++ notNumberedAreaName (string)
++ numSeat (string)
++ rowName (string)
++ sectorName (string)
++ printouts (number)
++ cancellations (number)
++ barcode (string)
++ status: `PURCHASED` (enum[string])
+    + Members
+        + `PURCHASED` (string)
+        + `REFUND` (string)
+        + `PREORDER` (string)
+        + `CONFIRMED` (string)
+        + `INVITATION` (string)
++ accessibility: `NORMAL` (enum[string])
+    + Members
+        + `NORMAL` (string)
+        + `DISABILITY` (string)
++ visibility: `NORMAL` (enum[string])
+    + Members
+        + `NORMAL` (string)
+        + `REDUCED` (string)
+        + `NULL` (string)
++ customer (CustomerType)
++ `session-basic-info` (SessionBaseType, required)
++ `automatic-promotion` (OrderAutomaticPromotionType)
++ promotion (OrderPromotionType)
++ discount (OrderDiscountType)
++ viewId (number)
++ notNumberedAreaId (number)
++ sectorId (number)
++ priceZoneId (number)
++ access (string)
++ idTicketActivityType (number)
++ nameTicketActivityType (string)
++ externalData (ExternalTicketDataType)
++ idVisitorGroup (number)
++ visitorGroupNumAttendantsVariation (number)
++ visitorGroupNumAccompanistsVariation (number)
++ @seatType: `NUMBERED` (enum[string], required)
+    + Members
+        + `NUMBERED` (string)
+        + `NOT_NUMBERED` (string)
++ @ticketType: `GENERAL` (enum[string], required)
+    + Members
+        + `GENERAL` (string)
+        + `INVITATION` (string)
+
+## CatalogInfoType
++ entityId (number)
++ name (string, required)
+
+## AttributeType
++ @id: 10 (number, required) - Unique attribute identifier.
++ name (string, required)
+
+## AttributesType
++ attribute (array[AttributeType], fixed-type, required)
+
+## ProductInfoFixedType
++ @id: 10 (number, required) - Unique product identifier.
++ internalName (string, required)
++ name (string, required)
++ dates (DatesType)
++ venue (VenueType, required)
++ `catalog-info` (CatalogInfoType, required)
++ attributes (AttributesType, required)
++ `product-image` (array[object], fixed-type, required)
++ forSale (boolean)
++ bookable (boolean)
+
+## ProductInfoNoLoopType
++ Include ProductInfoFixedType
++ `product-variant` (array[object], fixed-type, required) - Avoided loop. Object just like your ancestor 'product-info'
+
+## TaxType
++ @id: 10 (number, required) - Unique product identifier.
++ value: 0.00 (number, required)
+
+## TaxesType
++ tax (array[TaxType], fixed-type, required)
+
+## PriceBreakdownType
++ `base-price`: 10.00 (number, required)
++ `automatic-promotion` (number)
++ `manual-promotion` (number)
++ `manual-discount` (number)
++ `client-discount` (number)
++ `client-comission` (number)
++ charges (ChargesType)
++ `delivery-costs` (number)
++ insurance (number)
++ taxes (TaxesType)
++ `final-price`: 20.00 (number, required)
+
+## VariantAttributeType
++ attribute (AttributeType, required)
++ value (string, required)
+
+## VariantAttributesType
++ `variant-attribute` (array[VariantAttributeType], fixed-type, required)
+
+## ProductVariantType
++ id: 10 (number, required) - Unique product variant identifier.
++ sku (string)
++ `price-breakdown` (PriceBreakdownType, required)
++ `limited-stock` (boolean)
++ `variant-availability` (number)
++ `variant-attributes` (VariantAttributesType)
++ venue (VenueType, required)
++ `catalog-info` (CatalogInfoType, required)
++ `product-info` (ProductInfoNoLoopType, required)
+
+## ProductInfoType
++ Include ProductInfoFixedType
++ `product-variant` (array[ProductVariantType], fixed-type, required)
+
+## ProductDataType
++ venue (VenueType, required)
++ `product-info` (ProductInfoType, required)
++ `variant-attributes` (VariantAttributesType)
++ printouts: 0 (number)
++ cancellations: 0 (number)
++ status: `PURCHASED` (enum[string])
+    + Members
+        + `PURCHASED` (string)
+        + `REFUND` (string)
+        + `PREORDER` (string)
+        + `CONFIRMED` (string)
+        + `INVITATION` (string)
++ sku (string, required)
++ customer (CustomerType)
++ `session-basic-info` (SessionBaseType, required)
++ `event-basic-info` (EventBaseType, required)
++ automatic-promotion (OrderAutomaticPromotionType)
++ promotion (OrderPromotionType)
++ discount (OrderDiscountType)
++ productAcquisitionType: `GENERAL` (enum[string], required)
+    + Members
+        + `GENERAL` (string)
+        + `INVITATION` (string)
+
+## FieldType
++ @name (string, required)
++ @value (string, required)
+
+## ClientDiscountType
++ @value (number, required)
++ type: `PERCENT` (enum[string], required)
+    + Members
+        + `AMOUNT` (string)
+        + `PERCENT` (string)
+
+## ClientCommissionType
++ @value (number, required)
++ type: `PERCENT` (enum[string], required)
+    + Members
+        + `AMOUNT` (string)
+        + `PERCENT` (string)
+
+## AttendantType
++ field (array[FieldType], fixed-type, required)
++ clientDiscount (ClientDiscountType, required)
++ clientCommission (ClientCommissionType, required)
+
+## ClientConditionsType
++ @id: 123 (number, required) - Unique client conditions identifier.
+
+## OrderItemType
++ @id: 123 (number, required) - Unique order item identifier.
++ @type: `TICKET` (enum[string], required)
+    + Members
+        + `TICKET` (string)
+        + `PRODUCT` (string)
++ `ticket-data` (TicketDataType)
++ `product-data` (ProductDataType)
++ `price-breakdown` (PriceBreakdownType)
++ bookingIssueStatus: `PENDING` (enum[string])
+    + Members
+        + `PENDING` (string)
+        + `SOLD` (string)
+        + `REFUNDED` (string)
+        + `EXPIRED` (string)
++ $: `2015-09-01T12:00:00+01:00` (string, optional)
++ operationsAllowed (OperationsOrderAllowedType)
++ productId (number, optional)
++ itemWarning: `SESSION_NON_CONSECUTIVE_SEAT` (array[enum])
+    + (enum[string])
+        + Members
+            + `SESSION_NON_CONSECUTIVE_SEAT` (string)
+            + `SESSION_DIFERENT_PRICE_ZONE` (string)
+            + `NON_CONFIRMED_DATE` (string)
+            + `SESSION_NON_CONSECUTIVE_ZNN` (string)
+            + `SESSION_NON_CONSECUTIVE_SEAT_ZNN` (string)
++ attendant (AttendantType)
++ clientConditions (ClientConditionsType)
++ @relatedRefundOrderCode (string)
++ @relatedBookingIssueOrderCode (string)
++ @relatedBookingIssueOrderType: `PURCHASE` (enum[string])
+    + Members
+        + `PURCHASE` (string)
+        + `BOOKING` (string)
+        + `ISSUE` (string)
+        + `REFUND` (string)
++ originalBookingOrderCode (string)
+
+## InsuranceType
++ @id: 123 (number, required) - Unique insurance identifier.
++ name (string, required)
++ description (string, required)
++ privacyPolicy (string, required)
++ termsOfUse (string, required)
++ additionalData (string, required)
+
+## OrderPaymentType
++ id: 123 (number, required) - Unique payment identifier.
++ type: `CASH` (enum[string], required)
+    + Members
+        + `CREDIT_CARD` (string)
+        + `CASH` (string)
+        + `BANK_TRANSFER` (string)
+        + `OTHER` (string)
+        + `CLIENT_BALANCE` (string)
++ value (number, required)
++ externalReference (string)
++ isAdvance (boolean)
++ lastCreditCardDigits (string)
++ creditCardType: `MASTERCARD` (enum[string])
+    + Members
+        + `MASTERCARD` (string)
+        + `VISA` (string)
+        + `VISA_ELECTRON` (string)
+        + `AMERICAN_EXPRESS` (string)
+        + `OTHER` (string)
++ paymentDate: `2015-09-01T12:00:00+01:00` (string, required)
++ transferDate: `2015-09-01T12:00:00+01:00` (string, required)
+
+## OrderPaymentsType
++ payment (array[OrderPaymentType], fixed-type)
+
+## ChannelType
++ @id: 123 (number, required) - Unique channel identifier.
++ name (string, required)
++ type: `PORTAL` (enum[string], required)
+    + Members
+        + `BOXOFFICE` (string)
+        + `PORTAL` (string)
+        + `EXTERNAL` (string)
++ subType: `WEB` (enum[string], required)
+    + Members
+        + `WEB` (string)
+        + `MOBILE` (string)
+        + `BOXOFFICE` (string)
+
+## VisitorGroupType
++ @id: 123 (number, required) - Unique visitor group identifier.
++ name (string, required)
++ numAttendants (number)
++ numAccompanists (number)
++ `attribute-values` (array[AttributeValuesType], fixed-type, required)
+
+## InvoiceDataType
++ name (string, required)
++ fiscalCode (string, required)
++ fiscalCodeValidated: true (boolean, required)
++ address (string, required)
++ postalCode (string, required)
++ city (string, required)
++ $: `2015-09-01T12:00:00+01:00` (string, required)
++ language (string, required)
++ notes (string, required)
+
+## ClientB2BBranchType
++ location (LocationType, required)
++ contactName (string, required)
++ contactEmail (string, required)
++ contactPhone (string, required)
++ @main (boolean, required)
+
+## UserType
++ @id: 123 (number, required) - Unique user identifier.
++ name (string, required)
++ email (string, required)
++ username (string, required)
+
+## ClientB2BType
++ businessName (string, required)
++ description (string, required)
++ iataCode (string, required)
++ taxId (string, required)
++ tags (string, required)
++ clientB2BBranch (ClientB2BBranchType, required)
++ user (UserType, required)
++ @category (number)
+
+## PlatformClientType
++ id: 123 (number, required) - Unique platform client identifier.
++ name (string, required)
++ location (LocationType)
++ clientB2B (ClientB2BType)
++ type: `B2B` (enum[string])
+    + Members
+        + `B2B` (string)
+        + `B2C` (string)
+
+## OrderDetailsType
++ client (CustomerType, required)
++ operationsOrderAllowed (OperationsOrderAllowedType)
++ `order-item` (array[OrderItemType], fixed-type, required)
++ `delivery-method` (number, optional)
++ insurance (InsuranceType, required)
++ `price-breakdown` (PriceBreakdownType)
++ payments (OrderPaymentsType)
++ toBePaid: 10.99 (number, required)
++ pending: 0.00 (number, required)
++ suspectFraud (boolean, optional)
++ channel (ChannelType, required)
++ orderDate: `2015-09-01T12:00:00+01:00` (string, optional)
++ requestedPaymentReference (string, optional)
++ additionalChannelCommissions: 0.00 (number, optional)
++ visitorGroup (array[VisitorGroupType], fixed-type, required)
++ notes: `A note` (string, required)
++ invoiceData (InvoiceDataType, required)
++ platformClient (PlatformClientType, required)
++ @currency: `EUR` (string, required)
++ @orderCode: `01000000000A` (string, required)
++ @status: `PAID` (enum[string], required)
+    + Members
+        + `PRE_ORDER` (string)
+        + `CONFIRMED` (string)
+        + `PAID` (string)
+        + `CANCELLED` (string)
+        + `EXPIRED` (string)
++ @type: `PURCHASE` (enum[string], required)
+    + Members
+        + `PURCHASE` (string)
+        + `BOOKING` (string)
+        + `ISSUE` (string)
+        + `REFUND` (string)
++ @preOrderTimeLeft (number, optional)
+
+## CreateOrderType
++ Include OrderDetailsType
+
+## CreateOrderResponseType
++ `create-order` (CreateOrderType)
+
+## PaymentType
++ type: `CASH` (enum[string], required)
+    + Members
+        + `CREDIT_CARD` (string)
+        + `CASH` (string)
+        + `BANK_TRANSFER` (string)
+        + `OTHER` (string)
+        + `CLIENT_BALANCE` (string)
++ value: 100.00 (number, required)
++ creditCardNumber (string)
++ merchant (string)
++ externalReference (string)
++ creditCardType: `MASTERCARD` (enum[string])
+    + Members
+        + `MASTERCARD` (string)
+        + `VISA` (string)
+        + `VISA_ELECTRON` (string)
+        + `AMERICAN_EXPRESS` (string)
+        + `OTHER` (string)
++ transferDate: `2015-09-01T12:00:00+01:00` (string, required)
++ paymentExtraCode (string)
+
+## PaymentsType
++ payment (array[PaymentType], fixed-type, required)
+
+## CommitOrderType
++ Include OrderDetailsType
+
+## CommitOrderResponseType
++ `commit-order` (CommitOrderType)
+
+## TicketType
++ id (number, required) - Unique identifier of this ticket.
++ url (string)
++ format (string)
+
+## TicketsType
++ ticket (array[TicketType], required)
+
+## OrderReceiptType
++ url (string)
++ format (string)
+
+## OrderTicketsType
++ orderCode (string, required)
++ tickets (TicketsType, required)
++ orderReceipt (OrderReceiptType, required)
++ mergedTickets (string, required)
+
+## OrderTicketsPDFType
++ Include OrderTicketsType
+
+## OrderTicketsPDFResponseType
++ `order-tickets-pdf` (OrderTicketsPDFType)
